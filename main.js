@@ -201,7 +201,11 @@ var battle = function(arg) {
 		updateCondition(player.hp, (-monsterAttackDamage));
 		updateStat(player.str, playerAttackDamage*(arg.con/player.str.val));
 		updateStat(player.con, monsterAttackDamage*(arg.str/player.con.val));
-		updateStat(player.dex, player.dex.val/arg.dex);
+		attackDifference = monsterAttackDamage - playerAttackDamage;
+		if (attackDifference <= 1) {
+			attackDifference = 1;
+		}
+		updateStat(player.dex, attackDifference * 10 * arg.dex/player.dex.val);
 		
 		arg.curhp -= playerAttackDamage;
 		document.getElementById("monsterhp").innerHTML = Math.floor(arg.curhp);
