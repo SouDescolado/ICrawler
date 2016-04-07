@@ -9,7 +9,7 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 		<div class="container-fluid">
 			<div class="row">
-				<p class="text-center h1">ICrawler <small>alpha ver0.3</small></p>
+				<p class="text-center h1">ICrawler <small>alpha ver0.4</small></p>
 			</div>
 			<div class="row" style="height: 30px;"></div>
 			<div class="row">
@@ -134,7 +134,22 @@
 									<p>Time speed: x<span id="speed">1</span></p> 
 								</div>
 								<div class="col-xs-9">
-									<p class="text-right">Time left: <span id="days">0</span> days, <span id="hours">0</span> hours, <span id="minutes">0</span> minutes, <span id="seconds">0</span> seconds</p>
+									<div class="row">
+										<div class="col-xs-12">
+											<p class="text-right">Time left: <span id="days">0</span> days, <span id="hours">0</span> hours, <span id="minutes">0</span> minutes, <span id="seconds">0</span> seconds</p>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-xs-12">
+											<button class="btn btn-primary" onClick="speed(1000)">x1</button>
+											<button class="btn btn-primary" onClick="speed(200)">x5</button>
+											<button class="btn btn-primary" onClick="speed(100)">x10</button>
+											<button class="btn btn-primary" onClick="speed(50)">x20</button>
+											<button class="btn btn-primary" onClick="speed(20)">x50</button>
+											<button class="btn btn-primary" onClick="speed(10)">x100</button>
+											<button class="btn btn-primary" onClick="speed(4)">x250</button>
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -191,8 +206,20 @@
 					</div>
 					<div class="row">
 						<div class="well well-sm">
-							<p class="text-primary">Coming Soon:</p>
-							<p>Spells, More Monsters, Floor Treasures, Achievements, Balancing (seriously need balancing), Real Time Controls (yeah, no one will play it for 365 days)</p>
+							<div class="row">
+								<div class="col-xs-12">
+									<p class="text-primary">Coming Soon:</p>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-6">
+									<p>Spells, More Monsters, Floor Treasures, Achievements</p>
+								</div>
+								<div class="col-xs-3 col-xs-offset-2">
+									<button class="btn btn-danger btn-block" onClick="hardReset()">Hard Reset!</button>
+									<p>If you have updated from alpha v0.3, please do a hard reset! Encounter rates have been changed.</p>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
