@@ -21,7 +21,7 @@ var player = {
 };
 
 var spellbook = [];
-spellbook.push({name: "Cure", id: "cure", type: 0, requiredmgc: 5, learned: false, baseMP: 10, baseExcelia: 100, xp: 0, next: 100, level: 0});
+spellbook.push({name: "Cure", id: "cure", type: 0, requiredmgc: 5, learned: false, baseMP: 5, baseExcelia: 100, xp: 0, next: 100, level: 0});
 
 var tower = [];
 for (var i = 0; i <= 1000; i++) {
@@ -89,10 +89,9 @@ var readSpells = function() {
 	for (var i = 0; i < spellbook.length; i++) {
 		if (spellbook[i].learned || spellbook[i].requiredmgc <= player.mgc.val) {
 			var btncolor = spellType(spellbook[i].type)
-			document.getElementById("spellbook").innerHTML += '<div class="row"><div class="col-xs-5"><button class="btn ' + btncolor + ' btn-block" onClick="cast' + spellbook[i].id + '()">' + spellbook[i].name + '</button></div><div class="col-xs-7"><div class="progress"><div id="' + spellbook[i].id + 'xp" class="progress-bar" role="progressbar" style="width: ' + 100*spellbook[i].xp/spellbook[i].next + '%;"><span id="' + spellbook[i].id + 'prog">' + 100*spellbook[i].xp/spellbook[i].next + '%</span></div></div></div></div><div class="row"><div class="col-xs-5">Level: <span id="' + spellbook[i].id + 'level">0</span><br>Mana Cost: <span id="' + spellbook[i].id + 'cost">10</span></div><div class="col-xs-6"><p class="text-right">Excelia Cost: <span id="' + spellbook[i].id + 'excelia">100</span></p></div></div>';
+			document.getElementById("spellbook").innerHTML += '<div class="row"><div class="col-xs-5"><button class="btn ' + btncolor + ' btn-block" onClick="cast' + spellbook[i].id + '()">' + spellbook[i].name + '</button></div><div class="col-xs-7"><div class="progress"><div id="' + spellbook[i].id + 'xp" class="progress-bar" role="progressbar" style="width: ' + 100*spellbook[i].xp/spellbook[i].next + '%;"><span id="' + spellbook[i].id + 'prog">' + 100*spellbook[i].xp/spellbook[i].next + '%</span></div></div></div></div><div class="row"><div class="col-xs-5">Level: <span id="' + spellbook[i].id + 'level">0</span></div><div class="col-xs-6"><p class="text-right">Mana Cost: <span id="' + spellbook[i].id + 'cost">10</span></p></div></div>';
 			spellbook[i].learned = true;
 			document.getElementById(spellbook[i].id + "cost").innerHTML = Math.floor(spellbook[i].baseMP + Math.pow(spellbook[i].level, 2));
-			document.getElementById(spellbook[i].id + "excelia").innerHTML = Math.round(100*(spellbook[i].baseExcelia/(1+spellbook[i].level)))/100;
 			document.getElementById(spellbook[i].id + "level").innerHTML = spellbook[i].level;
 		}
 	}
@@ -114,7 +113,6 @@ var spellLevel = function(arg, number) {
 		arg.xp -= arg.next;
 		arg.next = 2 * arg.next;
 		document.getElementById(arg.id + "cost").innerHTML = Math.floor(arg.baseMP + Math.pow(arg.level, 2));
-		document.getElementById(arg.id + "excelia").innerHTML = Math.round(100*(arg.baseExcelia/(1+arg.level)))/100;
 	}
 	document.getElementById(arg.id + "xp").style.width = 100*(arg.xp/arg.next) + "%";
 	document.getElementById(arg.id + "prog").innerHTML = Math.round(100*(arg.xp/arg.next)*100)/100 + "%";
@@ -126,19 +124,14 @@ var castcure = function() {
 		if (spellbook[i].id == "cure") break;
 	}
 	mpcost = Math.floor(spellbook[i].baseMP + Math.pow(spellbook[i].level, 2));
-	exceliacost = Math.round(100*(spellbook[i].baseExcelia/(1+spellbook[i].level)))/100;
-	if (exceliacost < 10) {
-		exceliacost = 10;
-	}
-	if (player.mp.curval >= mpcost && player.excelia >= exceliacost) {
+	if (player.mp.curval >= mpcost) {
 		updateCondition(player.mp, -10);
-		updateExcelia(-exceliacost);
 		
 		curevalue = 25 * Math.pow(1.5, spellbook[i].level) * Math.pow(1.1, player.mgc.val);
 		updateCondition(player.hp, curevalue);
 		
 		spellLevel(spellbook[i], mpcost/5);
-		updateStat(player.mgc, spellbook[i].level+1 * exceliacost/10);
+		updateStat(player.mgc, spellbook[i].level+1+mpcost/10);
 		updateCondition(player.mp, 0);
 	}
 }
