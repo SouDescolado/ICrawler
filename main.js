@@ -26,25 +26,26 @@ for (var i = 0; i <= 1000; i++) {
 	else {
 		tempsize = Math.floor(2*tower[i-1].size);
 		tempstair = Math.floor(Math.random() * tempsize);
-		tempdensity = 10 + Math.random()*90;
+		tempdensity = 10 + Math.random()*40;
 		tower.push({size:tempsize, explored:0, advallowed:0, stairpos:tempstair, density:tempdensity});
 	}
 }
 
 var monster = [];
-monster.push({name: "Rat", curhp:25, hp: 25, str: 4, dex: 10, con: 5, killed: 0});
-monster.push({name: "Bat", curhp:30, hp: 30, str: 3, dex: 12, con: 3, killed: 0});
-monster.push({name: "Slime", curhp: 15, hp: 15, str: 7, dex: 3, con: 8, killed: 0});
-monster.push({name: "Kobold", curhp: 50, hp: 50, str: 11, dex: 6, con: 9, killed: 0});
-monster.push({name: "Wolf", curhp: 45, hp: 45, str: 10, dex: 8, con: 6, killed: 0});
-monster.push({name: "Lizard", curhp: 60, hp: 60, str: 8, dex: 5, con: 15, killed: 0});
-monster.push({name: "Goblin", curhp: 80, hp: 80, str: 15, dex: 7, con: 9, killed: 0});
-monster.push({name: "Bandit", curhp: 70, hp: 70, str: 12, dex: 12, con: 7, killed: 0});
-monster.push({name: "Giant Wolf", curhp: 120, hp: 120, str: 17, dex: 14, con: 10, killed: 0});
-monster.push({name: "Armored Slime", curhp: 140, hp: 140, str: 9, dex: 2, con: 25, killed: 0});
-monster.push({name: "Kobold Leader", curhp: 250, hp: 250, str: 18, dex: 8, con: 16, killed: 0});
-monster.push({name: "Weakened Minotaur", curhp: 360, hp: 360, str: 27, dex: 16, con: 30, killed: 0});
-monster.push({name: "Dragon Cub", curhp: 500, hp: 500, str: 35, dex: 25, con: 40, killed: 0});
+monster.push({name: "Rat", curhp:50, hp: 50, str: 5, dex: 5, con: 5, killed: 0});
+monster.push({name: "Bat", curhp:40, hp: 40, str: 4, dex: 7, con: 4, killed: 0});
+monster.push({name: "Slime", curhp: 65, hp: 65, str: 6, dex: 5, con: 7, killed: 0});
+monster.push({name: "Kobold", curhp: 180, hp: 180, str: 12, dex: 8, con: 7, killed: 0});
+monster.push({name: "Wolf", curhp: 320, hp: 320, str: 20, dex: 15, con: 12, killed: 0});
+monster.push({name: "Lizard", curhp: 710, hp: 710, str: 28, dex: 20, con: 25, killed: 0});
+monster.push({name: "Goblin", curhp: 1000, hp: 1000, str: 37, dex: 28, con: 35, killed: 0});
+monster.push({name: "Bandit", curhp: 1450, hp: 1450, str: 42, dex: 40, con: 25, killed: 0});
+monster.push({name: "Giant Wolf", curhp: 2100, hp: 2100, str: 50, dex: 38, con: 40, killed: 0});
+monster.push({name: "Armored Slime", curhp: 2750, hp: 2750, str: 25, dex: 5, con: 115, killed: 0});
+monster.push({name: "Kobold Leader", curhp: 3800, hp: 3800, str: 84, dex: 72, con: 75, killed: 0});
+monster.push({name: "Weakened Minotaur", curhp: 5100, hp: 5100, str: 101, dex: 84, con: 95, killed: 0});
+monster.push({name: "Dragon Cub", curhp: 8320, hp: 8320, str: 130, dex: 150, con: 120, killed: 0});
+monster.push({name: "Giant Snake", curhp: 13400, hp: 13400, str: 147, dex: 210, con: 95, killed: 0});
 
 var monsterTotal = monster.length - 1;
 
@@ -161,7 +162,9 @@ var load = function() {
 		player = savegame.player;
 		tower = savegame.tower;
 		ticks = savegame.ticks;
-		monster.killed = savegame.monster.killed;
+		for (var i = 0; i < savegame.monster.length; i++) {
+			monster[i].killed = savegame.monster[i].killed;
+		}
 		resting = savegame.resting;
 	}
 	else {
@@ -212,6 +215,14 @@ var battle = function(arg) {
 			updateStat(player.dex, arg.dex);
 			arg.killed += 1;
 			arg.curhp = arg.hp;
+			if (resting) {
+				if (tower[player.curfloor].size == tower[player.curfloor].explored && player.curfloor != 0) {
+					document.getElementById("restwalk").innerHTML = '<button class="btn btn-default btn-block" onClick="explore()">Search for Monsters</button>';
+				}
+				else if (player.curfloor != 0) {
+					document.getElementById("restwalk").innerHTML = '<button class="btn btn-default btn-block" onClick="explore()">Explore Floor</button>';
+				}
+			}
 		}
 		
 		if (player.hp.curval <= 0) {
@@ -251,10 +262,6 @@ var explore = function() {
 		if (resting) {
 			resting = false;
 			document.getElementById("restwalk").innerHTML = '<button class="btn btn-default btn-block" onClick="explore()">Rest</button>';
-			refreshSpeed = 1000;
-			game = window.clearInterval(game);
-			runGame();
-			document.getElementById("speed").innerHTML = "1";
 		}
 		else {
 			resting = true;
@@ -264,11 +271,11 @@ var explore = function() {
 			else if (player.curfloor != 0) {
 				document.getElementById("restwalk").innerHTML = '<button class="btn btn-default btn-block" onClick="explore()">Explore Floor</button>';
 			}
-			refreshSpeed = 100;
-			game = window.clearInterval(game);
-			runGame();
-			document.getElementById("speed").innerHTML = "10";
 		}
+	}
+	else {
+		resting = true;
+		document.getElementById("restwalk").innerHTML = '<button class="btn btn-success btn-block" onClick="explore()">Resting after Battle</button>';
 	}
 }
 
@@ -329,6 +336,18 @@ var main = function() {
 
 var runGame = function() {
 	game = window.setInterval(function(){ main() }, refreshSpeed);
+}
+
+var hardReset = function() {
+	localStorage.removeItem("save");
+	location.reload();
+}
+
+var speed = function(number) {
+	refreshSpeed = number;
+	game = window.clearInterval(game);
+	runGame();
+	document.getElementById("speed").innerHTML = 1000/number;
 }
 
 runGame();
