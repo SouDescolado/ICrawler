@@ -1,4 +1,5 @@
 var game;
+var queued;
 var ticks;
 var found;
 var gameSpeed = 1;
@@ -15,8 +16,12 @@ var player = {
 	con: {id: "con", val: 5, xp: 0, next: 90},
 	spd: {id: "spd", val: 5, xp: 0, next: 90},
 	mgc: {id: "mgc", val: 5, xp: 0, next: 90},
-	curfloor: 0
+	curfloor: 0,
+	excelia: 0
 };
+
+var spellbook = [];
+spellbook.push({name: "Cure", id: "cure", type: 0, requiredmgc: 5, learned: false, baseMP: 10, baseExcelia: 100, xp: 0, next: 100, level: 0});
 
 var tower = [];
 for (var i = 0; i <= 1000; i++) {
@@ -80,6 +85,70 @@ var updateStat = function(arg, number) {
 	document.getElementById(arg.id + "per").innerHTML = Math.round(((100 * (arg.xp / arg.next)))*100)/100 + "%";
 }
 
+var readSpells = function() {
+	for (var i = 0; i < spellbook.length; i++) {
+		if (spellbook[i].learned || spellbook[i].requiredmgc <= player.mgc.val) {
+			var btncolor = spellType(spellbook[i].type)
+			document.getElementById("spellbook").innerHTML += '<div class="row"><div class="col-xs-5"><button class="btn ' + btncolor + ' btn-block" onClick="cast' + spellbook[i].id + '()">' + spellbook[i].name + '</button></div><div class="col-xs-7"><div class="progress"><div id="' + spellbook[i].id + 'xp" class="progress-bar" role="progressbar" style="width: ' + 100*spellbook[i].xp/spellbook[i].next + '%;"><span id="' + spellbook[i].id + 'prog">' + 100*spellbook[i].xp/spellbook[i].next + '%</span></div></div></div></div><div class="row"><div class="col-xs-5">Level: <span id="' + spellbook[i].id + 'level">0</span><br>Mana Cost: <span id="' + spellbook[i].id + 'cost">10</span></div><div class="col-xs-6"><p class="text-right">Excelia Cost: <span id="' + spellbook[i].id + 'excelia">100</span></p></div></div>';
+			spellbook[i].learned = true;
+			document.getElementById(spellbook[i].id + "cost").innerHTML = Math.floor(spellbook[i].baseMP + Math.pow(spellbook[i].level, 2));
+			document.getElementById(spellbook[i].id + "excelia").innerHTML = Math.round(100*(spellbook[i].baseExcelia/(1+spellbook[i].level)))/100;
+			document.getElementById(spellbook[i].id + "level").innerHTML = spellbook[i].level;
+		}
+	}
+}
+
+var spellType = function(number) {
+	if (number == 0) {
+		return "btn-info";
+	}
+	else if (number == 1) {
+		return "btn-danger";
+	}
+}
+
+var spellLevel = function(arg, number) {
+	arg.xp += number;
+	if (arg.xp >= arg.next) {
+		arg.level++;
+		arg.xp -= arg.next;
+		arg.next = 2 * arg.next;
+		document.getElementById(arg.id + "cost").innerHTML = Math.floor(arg.baseMP + Math.pow(arg.level, 2));
+		document.getElementById(arg.id + "excelia").innerHTML = Math.round(100*(arg.baseExcelia/(1+arg.level)))/100;
+	}
+	document.getElementById(arg.id + "xp").style.width = 100*(arg.xp/arg.next) + "%";
+	document.getElementById(arg.id + "prog").innerHTML = Math.round(100*(arg.xp/arg.next)*100)/100 + "%";
+	document.getElementById(arg.id + "level").innerHTML = arg.level;
+}
+
+var castcure = function() {
+	for (var i = 0; i < spellbook.length; i++) {
+		if (spellbook[i].id == "cure") break;
+	}
+	mpcost = Math.floor(spellbook[i].baseMP + Math.pow(spellbook[i].level, 2));
+	exceliacost = Math.round(100*(spellbook[i].baseExcelia/(1+spellbook[i].level)))/100;
+	if (exceliacost < 10) {
+		exceliacost = 10;
+	}
+	if (player.mp.curval >= mpcost && player.excelia >= exceliacost) {
+		updateCondition(player.mp, -10);
+		updateExcelia(-exceliacost);
+		
+		curevalue = 25 * Math.pow(1.5, spellbook[i].level) * Math.pow(1.1, player.mgc.val);
+		updateCondition(player.hp, curevalue);
+		
+		spellLevel(spellbook[i], mpcost/5);
+		updateStat(player.mgc, spellbook[i].level+1 * exceliacost/10);
+		updateCondition(player.mp, 0);
+	}
+}
+
+var gainExcelia = function(arg) {
+	var gain = (arg.str + arg.con + arg.dex)/15;
+	player.excelia += gain;
+	document.getElementById("excelia").innerHTML = Math.round(100*player.excelia)/100;
+}
+
 var updateTime = function(number) {
 	document.getElementById("seconds").innerHTML = number % 60;
 	number = Math.floor(number / 60);
@@ -90,12 +159,17 @@ var updateTime = function(number) {
 	document.getElementById("days").innerHTML = number;
 }
 
+var updateExcelia = function(number) {
+	player.excelia += number;
+	document.getElementById("excelia").innerHTML = Math.round(100*player.excelia)/100;
+}
+
 var changeFloor = function(number) {
 	if (inbattle == false) {
 		player.curfloor = player.curfloor + number;
 		document.getElementById("floor").innerHTML = player.curfloor;
 		document.getElementById("floorbar").style.width = 100*(tower[player.curfloor].explored / tower[player.curfloor].size) + "%";
-		document.getElementById("explperc").innerHTML = 100*(tower[player.curfloor].explored / tower[player.curfloor].size);
+		document.getElementById("explperc").innerHTML = Math.round((100*(tower[player.curfloor].explored / tower[player.curfloor].size))*100)/100 + "%";
 		if (tower[player.curfloor].advallowed == 1) {
 			document.getElementById("advbut").innerHTML = '<button class="btn btn-default btn-block" onClick="changeFloor(1)">Proceed to Floor <span id="nextfloor">0</span></button>';
 			document.getElementById("nextfloor").innerHTML = player.curfloor + 1;
@@ -131,18 +205,18 @@ var changeFloor = function(number) {
 var exploreFloor = function() {
 	if (tower[player.curfloor].explored < tower[player.curfloor].size) {
 		tower[player.curfloor].explored += player.spd.val/10;
-		updateStat(player.spd, player.spd.val/10);
 		if (tower[player.curfloor].explored > tower[player.curfloor].size) {
 			tower[player.curfloor].explored = tower[player.curfloor].size;
 		}
 		document.getElementById("floorbar").style.width = 100*(tower[player.curfloor].explored / tower[player.curfloor].size) + "%";
 		document.getElementById("explperc").innerHTML = Math.round((100*(tower[player.curfloor].explored / tower[player.curfloor].size))*100)/100 + "%";
 	}
-	if (tower[player.curfloor].stairpos <= tower[player.curfloor].explored) {
+	if (tower[player.curfloor].stairpos <= tower[player.curfloor].explored && tower[player.curfloor].advallowed == 0) {
 		tower[player.curfloor].advallowed = 1;
 		document.getElementById("advbut").innerHTML = '<button class="btn btn-default btn-block" onClick="changeFloor(1)">Proceed to Floor <span id="nextfloor">0</span></button>';
 		document.getElementById("nextfloor").innerHTML = player.curfloor + 1;
 	}
+	updateStat(player.spd, player.spd.val/10);
 	battleChance();
 }
 
@@ -152,20 +226,46 @@ var saving = function() {
 		tower: tower,
 		ticks: ticks,
 		monster: monster,
-		resting: resting
+		resting: resting,
+		spellbook: spellbook
 	}
 	localStorage.setItem("save",JSON.stringify(save));
 }
 
 var load = function() {	
 	if (savegame = JSON.parse(localStorage.getItem("save"))) {
-		player = savegame.player;
-		tower = savegame.tower;
+		player.name = savegame.player.name;
+		player.hp = savegame.player.hp;
+		player.mp = savegame.player.mp;
+		player.str = savegame.player.str;
+		player.dex = savegame.player.dex;
+		player.con = savegame.player.con;
+		player.spd = savegame.player.spd;
+		player.mgc = savegame.player.mgc;
+		player.curfloor = savegame.player.curfloor;
+		if (savegame.player.excelia != undefined) {
+			player.excelia = savegame.player.excelia;
+		}
+		for (var i = 0; i < savegame.tower.length; i++) {
+			tower[i].size = savegame.tower[i].size;
+			tower[i].explored = savegame.tower[i].explored;
+			tower[i].advallowed = savegame.tower[i].advallowed;
+			tower[i].stairpos = savegame.tower[i].stairpos;
+			tower[i].density = savegame.tower[i].density;
+		}
 		ticks = savegame.ticks;
 		for (var i = 0; i < savegame.monster.length; i++) {
 			monster[i].killed = savegame.monster[i].killed;
 		}
 		resting = savegame.resting;
+		if (savegame.spellbook != undefined) {
+			for (var i = 0; i < savegame.spellbook.length; i++) {
+				spellbook[i].learned = savegame.spellbook[i].learned;
+				spellbook[i].xp = savegame.spellbook[i].xp;
+				spellbook[i].next = savegame.spellbook[i].next;
+				spellbook[i].level = savegame.spellbook[i].level;
+			}
+		}
 	}
 	else {
 		player.name = prompt("Please, enter your name:", "Crawler");
@@ -184,14 +284,14 @@ var battle = function(arg) {
 		inbattle = true;
 	}
 	else {
-		playerAttackDamage = (2*player.str.val * (player.dex.val/10)) - arg.con/2;
+		playerAttackDamage = (2*player.str.val - arg.con/2) * (player.dex.val/10);
 		if (playerAttackDamage > arg.curhp) {
 			playerAttackDamage = arg.curhp;
 		}
 		else if (playerAttackDamage <= 0) {
 			playerAttackDamage = 0;
 		}
-		monsterAttackDamage = (2*arg.str * (arg.dex/10)) - player.con.val/2;
+		monsterAttackDamage = (2*arg.str - player.con.val/2) * (arg.dex/10);
 		if (monsterAttackDamage > player.hp.curval) {
 			monsterAttackDamage = player.hp.curval;
 		}
@@ -199,13 +299,9 @@ var battle = function(arg) {
 			monsterAttackDamage = 0;
 		}
 		updateCondition(player.hp, (-monsterAttackDamage));
-		updateStat(player.str, playerAttackDamage*(arg.con/player.str.val));
-		updateStat(player.con, monsterAttackDamage*(arg.str/player.con.val));
-		attackDifference = monsterAttackDamage - playerAttackDamage;
-		if (attackDifference <= 1) {
-			attackDifference = 1;
-		}
-		updateStat(player.dex, attackDifference * 10 * arg.dex/player.dex.val);
+		updateStat(player.str, (arg.str/player.str.val));
+		updateStat(player.con, (arg.con/player.con.val));
+		updateStat(player.dex, (arg.dex/player.dex.val));
 		
 		arg.curhp -= playerAttackDamage;
 		document.getElementById("monsterhp").innerHTML = Math.floor(arg.curhp);
@@ -218,6 +314,7 @@ var battle = function(arg) {
 			updateStat(player.con, arg.con);
 			updateStat(player.dex, arg.dex);
 			arg.killed += 1;
+			gainExcelia(arg);
 			arg.curhp = arg.hp;
 			if (resting) {
 				if (tower[player.curfloor].size == tower[player.curfloor].explored && player.curfloor != 0) {
@@ -233,6 +330,7 @@ var battle = function(arg) {
 			inbattle = false;
 			document.getElementById("battlestatus").innerHTML = "You have been defeated by " + arg.name + "!";
 			changeFloor(-player.curfloor);
+			updateExcelia(-player.excelia);
 			player.str.val -= Math.floor(player.str.val/10);
 			player.dex.val -= Math.floor(player.dex.val/10);
 			player.con.val -= Math.floor(player.con.val/10);
@@ -263,9 +361,13 @@ var battleChance = function() {
 
 var explore = function() {
 	if (inbattle == false) {
-		if (resting) {
+		if (resting && player.hp.curval == player.hp.maxval && player.mp.curval == player.mp.maxval) {
 			resting = false;
 			document.getElementById("restwalk").innerHTML = '<button class="btn btn-default btn-block" onClick="explore()">Rest</button>';
+		}
+		else if (resting) {
+			queued = true;
+			document.getElementById("restwalk").innerHTML = '<button class="btn btn-success btn-block" onClick="explore()">Exploration Queued</button>';
 		}
 		else {
 			resting = true;
@@ -279,7 +381,7 @@ var explore = function() {
 	}
 	else {
 		resting = true;
-		document.getElementById("restwalk").innerHTML = '<button class="btn btn-success btn-block" onClick="explore()">Resting after Battle</button>';
+		document.getElementById("restwalk").innerHTML = '<button class="btn btn-success btn-block" onClick="explore()">Resting Queued</button>';
 	}
 }
 
@@ -296,7 +398,8 @@ var main = function() {
 		updateCondition(player.hp, 0);
 		updateCondition(player.mp, 0);
 		document.getElementById("floor").innerHTML = player.curfloor;
-		document.getElementById("explperc").innerHTML = 100*(tower[player.curfloor].explored / tower[player.curfloor].size);
+		document.getElementById("explperc").innerHTML = Math.round((100*(tower[player.curfloor].explored / tower[player.curfloor].size))*100)/100 + "%";
+		document.getElementById("floorbar").style.width = 100*(tower[player.curfloor].explored / tower[player.curfloor].size) + "%";
 		if (tower[player.curfloor].advallowed == 1) {
 			document.getElementById("advbut").innerHTML = '<button class="btn btn-default btn-block" onClick="changeFloor(1)">Proceed to Floor <span id="nextfloor">0</span></button>';
 			document.getElementById("nextfloor").innerHTML = player.curfloor + 1;
@@ -316,6 +419,8 @@ var main = function() {
 		else {
 			document.getElementById("restwalk").innerHTML = '<button class="btn btn-default btn-block" onClick="explore()">Rest</button>';
 		}
+		document.getElementById("excelia").innerHTML = Math.round(100*player.excelia)/100;
+		readSpells();
 		refreshSpeed = 1000;
 		game = window.clearInterval(game);
 		runGame();
@@ -326,6 +431,11 @@ var main = function() {
 		if (resting) {
 			updateCondition(player.hp, 1*player.con.val);
 			updateCondition(player.mp, 1*player.mgc.val);
+			if (queued && player.hp.curval == player.hp.maxval && player.mp.curval == player.mp.maxval) {
+				resting = false;
+				document.getElementById("restwalk").innerHTML = '<button class="btn btn-default btn-block" onClick="explore()">Rest</button>';
+				queued = false;
+			}
 		}
 		else {
 			exploreFloor();
@@ -343,8 +453,10 @@ var runGame = function() {
 }
 
 var hardReset = function() {
-	localStorage.removeItem("save");
-	location.reload();
+	if (confirm("Are you sure you want to wipe ALL your progress?"))  {
+		localStorage.removeItem("save");
+		location.reload();
+	}
 }
 
 var speed = function(number) {

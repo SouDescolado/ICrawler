@@ -9,7 +9,7 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 		<div class="container-fluid">
 			<div class="row">
-				<p class="text-center h1">ICrawler <small>alpha ver0.4</small></p>
+				<p class="text-center h1">ICrawler <small>alpha ver0.5</small></p>
 			</div>
 			<div class="row" style="height: 30px;"></div>
 			<div class="row">
@@ -19,7 +19,7 @@
 							<div class="well well-sm">
 								<div class="row">
 									<div class="col-xs-12">
-										<p class="text-primary">Status Screen</p>
+										<p class="text-danger">Status Screen</p>
 										<p>Name: <span id="name">Crawler</span></p>
 									</div>
 								</div>
@@ -115,12 +115,35 @@
 							<div class="well well-sm">
 								<div class="row">
 									<div class="col-xs-3">
-										<p class="text-primary">Spellbook</p>
+										<p class="text-danger">Spellbook</p>
 									</div>
 									<div class="col-xs-9">
 										<p class="text-right">Excelia: <span id="excelia">0</span></p>
 									</div>
 								</div>
+								<span id="spellbook">
+									<!--<div class="row">
+										<div class="col-xs-5">
+											<button class="btn btn-info btn-block">Spellname</button>
+										</div>
+										<div class="col-xs-7">
+											<div class="progress">
+												<div id="spellidxp" class="progress-bar" role="progressbar" style="width: 100%;">
+													<span id="spellidprog">0%</span>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-xs-5">
+											Level: <span id="spellidlevel">0</span><br>
+											Mana Cost: <span id="spellidcost">10</span>
+										</div>
+										<div class="col-xs-6">
+											<p class="text-right">Excelia Cost: <span id="spellidexcelia">100</span></p>
+										</div>
+									</div>-->
+								</span>
 							</div>
 						</div>
 					</div>
@@ -130,7 +153,7 @@
 						<div class="well well-sm">
 							<div class="row">
 								<div class="col-xs-3">
-									<p class="text-primary">Time Controls</p>
+									<p class="text-danger">Time Controls</p>
 									<p>Time speed: x<span id="speed">1</span></p> 
 								</div>
 								<div class="col-xs-9">
@@ -156,7 +179,7 @@
 					</div>
 					<div class="row">
 						<div class="well well-sm">
-							<p class="text-primary">The Tower</p>
+							<p class="text-danger">The Tower</p>
 							<p>You are currently at Floor <span id="floor">0</span>. Get to Floor 1000 before time ends, or the world will be destroyed.</p>
 							<div class="row" style="height: 10px;"></div>
 							<div class="row">
@@ -185,7 +208,7 @@
 					</div>
 					<div class="row">
 						<div class="well well-sm">
-							<p class="text-primary">Battle Screen</p>
+							<p class="text-danger">Battle Screen</p>
 							<div class="row">
 								<div class="col-xs-3">
 									Monster: <span id="monstername">None</span><br>
@@ -208,16 +231,16 @@
 						<div class="well well-sm">
 							<div class="row">
 								<div class="col-xs-12">
-									<p class="text-primary">Coming Soon:</p>
+									<p class="text-danger">Coming Soon:</p>
 								</div>
 							</div>
 							<div class="row">
 								<div class="col-xs-6">
-									<p>Spells, More Monsters, Floor Treasures, Achievements</p>
+									<p>More Spells!!, More Monsters!!, Floor Treasures, Achievements, Equipments(?)</p>
 								</div>
 								<div class="col-xs-3 col-xs-offset-2">
 									<button class="btn btn-danger btn-block" onClick="hardReset()">Hard Reset!</button>
-									<p>If you have updated from alpha v0.3, please do a hard reset! Encounter rates have been changed.</p>
+									<p>If you encounter any bug, please try hard resetting. (Shouldn't be necessary unless you're coming from v0.3 though)</p>
 								</div>
 							</div>
 						</div>
