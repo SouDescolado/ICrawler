@@ -9,11 +9,11 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 		<div class="container-fluid">
 			<div class="row">
-				<p class="text-center h1">ICrawler <small>alpha ver0.51</small></p>
+				<p class="text-center h1">ICrawler <small>alpha ver0.6</small></p>
 			</div>
 			<div class="row" style="height: 30px;"></div>
 			<div class="row">
-				<div class="col-xs-3 col-xs-offset-1">
+				<div class="col-xs-3">
 					<div class="row">
 						<div class="col-xs-12">
 							<div class="well well-sm">
@@ -114,40 +114,33 @@
 						<div class="col-xs-12">
 							<div class="well well-sm">
 								<div class="row">
-									<div class="col-xs-3">
-										<p class="text-danger">Spellbook</p>
-									</div>
-									<div class="col-xs-9">
-										<p class="text-right">Excelia: <span id="excelia">0</span></p>
+									<div class="col-xs-12">
+										<p class="text-danger">Buffs</p>
 									</div>
 								</div>
-								<span id="spellbook">
-									<!--<div class="row">
-										<div class="col-xs-5">
-											<button class="btn btn-info btn-block">Spellname</button>
-										</div>
-										<div class="col-xs-7">
-											<div class="progress">
-												<div id="spellidxp" class="progress-bar" role="progressbar" style="width: 100%;">
-													<span id="spellidprog">0%</span>
-												</div>
-											</div>
-										</div>
+								<div class="row">
+									<div class="col-xs-12">
+										<p class="text-success">Permanent Buffs:</p>
+										<ul class="list-group">
+											<span id="permanent">
+											</span>
+										<ul>
 									</div>
-									<div class="row">
-										<div class="col-xs-5">
-											Level: <span id="spellidlevel">0</span><br>
-										</div>
-										<div class="col-xs-6">
-											<p class="text-right">Mana Cost: <span id="spellidcost">10</span></p>
-										</div>
-									</div>-->
-								</span>
+								</div>
+								<div class="row">
+									<div class="col-xs-12">
+										<p class="text-warning">Temporary Buffs:</p>
+										<ul class="list-group">
+											<span id="temporary">
+											</span>
+										</ul>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-				<div class="col-xs-7">
+				<div class="col-xs-6">
 					<div class="row">
 						<div class="well well-sm">
 							<div class="row">
@@ -164,6 +157,7 @@
 									<div class="row">
 										<div class="col-xs-12">
 											<button class="btn btn-primary" onClick="speed(1000)">x1</button>
+											<button class="btn btn-primary" onClick="speed(500)">x2</button>
 											<button class="btn btn-primary" onClick="speed(200)">x5</button>
 											<button class="btn btn-primary" onClick="speed(100)">x10</button>
 											<button class="btn btn-primary" onClick="speed(50)">x20</button>
@@ -179,10 +173,10 @@
 					<div class="row">
 						<div class="well well-sm">
 							<p class="text-danger">The Tower</p>
-							<p>You are currently at Floor <span id="floor">0</span>. Get to Floor 1000 before time ends, or the world will be destroyed.</p>
+							<p>You are currently at Floor <span id="floor">0</span>.</p>
 							<div class="row" style="height: 10px;"></div>
 							<div class="row">
-								<div class="col-xs-3 col-xs-offset-1">
+								<div class="col-xs-4">
 									<span id="advbut"></span>
 									<span id="retbut"></span>
 								</div>
@@ -196,7 +190,7 @@
 								</div>
 							</div>
 							<div class="row">
-								<div class="col-xs-3 col-xs-offset-1">
+								<div class="col-xs-4">
 									<span id="restwalk"></span>
 								</div>
 								<div class="col-xs-3">
@@ -235,12 +229,70 @@
 							</div>
 							<div class="row">
 								<div class="col-xs-6">
-									<p>More Spells!!, More Monsters!!, Floor Treasures, Achievements, Equipments(?)</p>
+									<p>Higher Priority: More Spells, More Monsters, More Upgrades</p>
+									<p>Lower Priority: Achievements, Equipments</p>
 								</div>
 								<div class="col-xs-3 col-xs-offset-2">
 									<button class="btn btn-danger btn-block" onClick="hardReset()">Hard Reset!</button>
 									<p>If you encounter any bug, please try hard resetting. (Shouldn't be necessary unless you're coming from v0.3 though)</p>
 								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-xs-3">
+					<div class="row">
+						<div class="col-xs-12">
+							<div class="well well-sm">
+								<div class="row">
+									<div class="col-xs-12">
+										<p class="text-danger">Spellbook</p>
+									</div>
+								</div>
+								<span id="spellbook">
+									<!--<div class="row">
+										<div class="col-xs-5">
+											<button class="btn btn-info btn-block">Spellname</button>
+										</div>
+										<div class="col-xs-7">
+											<div class="progress">
+												<div id="spellidxp" class="progress-bar" role="progressbar" style="width: 100%;">
+													<span id="spellidprog">0%</span>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-xs-5">
+											Level: <span id="spellidlevel">0</span><br>
+										</div>
+										<div class="col-xs-6">
+											<p class="text-right">Mana Cost: <span id="spellidcost">10</span></p>
+										</div>
+									</div>-->
+								</span>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-12">
+							<div class="well well-sm">
+								<div class="row">
+									<div class="col-xs-3">
+										<p class="text-danger">Upgrades</p>
+									</div>
+									<div class="col-xs-9">
+										<p class="text-right">Excelia: <span id="excelia">0</span></p>
+									</div>
+								</div>
+								<span id="upgrades">
+									<!--<div class="row">
+										<div class="col-xs-12">
+											<button class="btn btn-primary btn-block"><span class="idname">Upgrade Name</span></button>
+											<p><span class="iddesc">Upgrade Description</span> (Cost: <span class="idcost">0</span>)</p>
+										</div>
+									</div>-->
+								</span>
 							</div>
 						</div>
 					</div>
