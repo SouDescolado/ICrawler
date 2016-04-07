@@ -7,6 +7,7 @@ var refreshSpeed = 1000;
 var init = 0;
 var inbattle = false;
 var resting = true;
+var autocrawl = 0;
 var player = {
 	name:"placeholder",
 	hp: {id: "hp", curval: 100, maxval: 100},
@@ -21,7 +22,11 @@ var player = {
 };
 
 var spellbook = [];
-spellbook.push({name: "Cure", id: "cure", type: 0, requiredmgc: 5, learned: false, baseMP: 5, baseExcelia: 100, xp: 0, next: 100, level: 0});
+spellbook.push({name: "Cure", id: "cure", type: 0, requiredmgc: 5, learned: false, baseMP: 5, xp: 0, next: 100, level: 0});
+spellbook.push({name: "Fireball", id: "fireball", type: 1, requiredmgc: 5, learned: false, baseMP: 2, xp: 0, next: 100, level: 0});
+
+var upgrades =[];
+upgrades.push({name: "Auto Crawl 1", id: "autocrawl1", desc:"Rest whenever you're below 10% health. Start exploring again when completely healed.", exceliacost: 1000, shown: false, purchased: false});
 
 var tower = [];
 for (var i = 0; i <= 1000; i++) {
@@ -86,14 +91,45 @@ var updateStat = function(arg, number) {
 }
 
 var readSpells = function() {
+	document.getElementById("spellbook").innerHTML = '';
 	for (var i = 0; i < spellbook.length; i++) {
 		if (spellbook[i].learned || spellbook[i].requiredmgc <= player.mgc.val) {
 			var btncolor = spellType(spellbook[i].type)
 			document.getElementById("spellbook").innerHTML += '<div class="row"><div class="col-xs-5"><button class="btn ' + btncolor + ' btn-block" onClick="cast' + spellbook[i].id + '()">' + spellbook[i].name + '</button></div><div class="col-xs-7"><div class="progress"><div id="' + spellbook[i].id + 'xp" class="progress-bar" role="progressbar" style="width: ' + 100*spellbook[i].xp/spellbook[i].next + '%;"><span id="' + spellbook[i].id + 'prog">' + 100*spellbook[i].xp/spellbook[i].next + '%</span></div></div></div></div><div class="row"><div class="col-xs-5">Level: <span id="' + spellbook[i].id + 'level">0</span></div><div class="col-xs-6"><p class="text-right">Mana Cost: <span id="' + spellbook[i].id + 'cost">0</span></p></div></div>';
 			spellbook[i].learned = true;
+			document.getElementById(spellbook[i].id + "prog").innerHTML = Math.round(100*(spellbook[i].xp/spellbook[i].next)*100)/100 + "%";
 			document.getElementById(spellbook[i].id + "cost").innerHTML = Math.floor(spellbook[i].baseMP + Math.pow(spellbook[i].level, 2));
 			document.getElementById(spellbook[i].id + "level").innerHTML = spellbook[i].level;
 		}
+	}
+}
+
+var readUpgrades = function() {
+	document.getElementById("upgrades").innerHTML = '';
+	for (var i = 0; i < upgrades.length; i++) {
+		if ((player.excelia >= upgrades[i].exceliacost || upgrades[i].shown == true) && upgrades[i].purchased == false) {
+			upgrades[i].shown = true;
+			document.getElementById("upgrades").innerHTML += '<div class="row"><div class="col-xs-12"><button class="btn btn-primary btn-block" onClick="' + upgrades[i].id + 'Buy()">' + upgrades[i].name + '</button><p>' + upgrades[i].desc + ' (Cost: ' + upgrades[i].exceliacost + ')</p></div></div>'
+		}
+	}
+}
+
+var readBuffs = function() {
+	document.getElementById("permanent").innerHTML = '';
+	if (autocrawl != 0) {
+		document.getElementById("permanent").innerHTML += '<li class="list-group-item"><span class="badge">' + autocrawl + '%</span>Auto Crawl</li>'
+	}
+}
+
+var autocrawl1Buy = function() {
+	for (var i = 0; i < upgrades.length; i++) {
+		if (upgrades[i].id == "autocrawl1") break;
+	}
+	if (player.excelia > upgrades[i].exceliacost) {
+		updateExcelia(-upgrades[i].exceliacost);
+		autocrawl = 10;
+		upgrades[i].purchased = true;
+		readUpgrades();
 	}
 }
 
@@ -113,6 +149,7 @@ var spellLevel = function(arg, number) {
 		arg.xp -= arg.next;
 		arg.next = 2 * arg.next;
 		document.getElementById(arg.id + "cost").innerHTML = Math.floor(arg.baseMP + Math.pow(arg.level, 2));
+		readSpells();
 	}
 	document.getElementById(arg.id + "xp").style.width = 100*(arg.xp/arg.next) + "%";
 	document.getElementById(arg.id + "prog").innerHTML = Math.round(100*(arg.xp/arg.next)*100)/100 + "%";
@@ -133,6 +170,49 @@ var castcure = function() {
 		spellLevel(spellbook[i], mpcost/5);
 		updateStat(player.mgc, spellbook[i].level+1+mpcost/10);
 		updateCondition(player.mp, 0);
+	}
+}
+
+var castfireball = function() {
+	if (inbattle == true) {
+		for (var i = 0; i < spellbook.length; i++) {
+			if (spellbook[i].id == "fireball") break;
+		}
+		mpcost = Math.floor(spellbook[i].baseMP + Math.pow(spellbook[i].level, 2));
+		if (player.mp.curval >= mpcost) {
+			updateCondition(player.mp, -mpcost);
+			
+			damagevalue = 15 * Math.pow(1.5, spellbook[i].level) * Math.pow(1.1, player.mgc.val);
+			if (monster[found].curhp <= damagevalue) {
+				damagevalue = monster[found].curhp;
+			}
+			monster[found].curhp -= damagevalue;
+			document.getElementById("monsterbar").style.width = 100*monster[found].curhp/monster[found].hp + "%";
+			document.getElementById("monsterhp").innerHTML = Math.floor(monster[found].curhp);
+			
+			if (monster[found].curhp <= 0) {
+				inbattle = false;
+				document.getElementById("battlestatus").innerHTML = "You have defeated " + monster[found].name + "!";
+				updateStat(player.str, monster[found].str);
+				updateStat(player.con, monster[found].con);
+				updateStat(player.dex, monster[found].dex);
+				monster[found].killed += 1;
+				gainExcelia(monster[found]);
+				monster[found].curhp = monster[found].hp;
+				if (resting) {
+					if (tower[player.curfloor].size == tower[player.curfloor].explored && player.curfloor != 0) {
+						document.getElementById("restwalk").innerHTML = '<button class="btn btn-default btn-block" onClick="explore()">Search for Monsters</button>';
+					}
+					else if (player.curfloor != 0) {
+						document.getElementById("restwalk").innerHTML = '<button class="btn btn-default btn-block" onClick="explore()">Explore Floor</button>';
+					}
+				}
+			}
+			
+			spellLevel(spellbook[i], mpcost/5);
+			updateStat(player.mgc, spellbook[i].level+1+mpcost/10);
+			updateCondition(player.mp, 0);
+		}
 	}
 }
 
@@ -163,7 +243,7 @@ var changeFloor = function(number) {
 		document.getElementById("floor").innerHTML = player.curfloor;
 		document.getElementById("floorbar").style.width = 100*(tower[player.curfloor].explored / tower[player.curfloor].size) + "%";
 		document.getElementById("explperc").innerHTML = Math.round((100*(tower[player.curfloor].explored / tower[player.curfloor].size))*100)/100 + "%";
-		if (tower[player.curfloor].advallowed == 1) {
+		if (tower[player.curfloor].advallowed == 1 && player.curfloor < monster.length) {
 			document.getElementById("advbut").innerHTML = '<button class="btn btn-default btn-block" onClick="changeFloor(1)">Proceed to Floor <span id="nextfloor">0</span></button>';
 			document.getElementById("nextfloor").innerHTML = player.curfloor + 1;
 		}
@@ -204,7 +284,7 @@ var exploreFloor = function() {
 		document.getElementById("floorbar").style.width = 100*(tower[player.curfloor].explored / tower[player.curfloor].size) + "%";
 		document.getElementById("explperc").innerHTML = Math.round((100*(tower[player.curfloor].explored / tower[player.curfloor].size))*100)/100 + "%";
 	}
-	if (tower[player.curfloor].stairpos <= tower[player.curfloor].explored && tower[player.curfloor].advallowed == 0) {
+	if (tower[player.curfloor].stairpos <= tower[player.curfloor].explored && tower[player.curfloor].advallowed == 0 && player.curfloor < monster.length) {
 		tower[player.curfloor].advallowed = 1;
 		document.getElementById("advbut").innerHTML = '<button class="btn btn-default btn-block" onClick="changeFloor(1)">Proceed to Floor <span id="nextfloor">0</span></button>';
 		document.getElementById("nextfloor").innerHTML = player.curfloor + 1;
@@ -220,7 +300,9 @@ var saving = function() {
 		ticks: ticks,
 		monster: monster,
 		resting: resting,
-		spellbook: spellbook
+		spellbook: spellbook,
+		upgrades: upgrades,
+		autocrawl: autocrawl
 	}
 	localStorage.setItem("save",JSON.stringify(save));
 }
@@ -240,6 +322,7 @@ var load = function() {
 			player.excelia = savegame.player.excelia;
 		}
 		for (var i = 0; i < savegame.tower.length; i++) {
+			if (i == tower.length) break;
 			tower[i].size = savegame.tower[i].size;
 			tower[i].explored = savegame.tower[i].explored;
 			tower[i].advallowed = savegame.tower[i].advallowed;
@@ -253,11 +336,22 @@ var load = function() {
 		resting = savegame.resting;
 		if (savegame.spellbook != undefined) {
 			for (var i = 0; i < savegame.spellbook.length; i++) {
+				if (i == spellbook.length) break;
 				spellbook[i].learned = savegame.spellbook[i].learned;
 				spellbook[i].xp = savegame.spellbook[i].xp;
 				spellbook[i].next = savegame.spellbook[i].next;
 				spellbook[i].level = savegame.spellbook[i].level;
 			}
+		}
+		if (savegame.upgrades != undefined) {
+			for (var i = 0; i < savegame.upgrades.length; i++) {
+				if (i == upgrades.length) break;
+				upgrades[i].shown = savegame.upgrades[i].shown;
+				upgrades[i].purchased = savegame.upgrades[i].purchased;
+			}
+		}
+		if (savegame.autocrawl != undefined) {
+			autocrawl = savegame.autocrawl;
 		}
 	}
 	else {
@@ -414,6 +508,8 @@ var main = function() {
 		}
 		document.getElementById("excelia").innerHTML = Math.round(100*player.excelia)/100;
 		readSpells();
+		readUpgrades();
+		readBuffs();
 		refreshSpeed = 1000;
 		game = window.clearInterval(game);
 		runGame();
@@ -429,6 +525,10 @@ var main = function() {
 				document.getElementById("restwalk").innerHTML = '<button class="btn btn-default btn-block" onClick="explore()">Rest</button>';
 				queued = false;
 			}
+		}
+		else if (100*player.hp.curval/player.hp.maxval <= autocrawl) {
+			explore();
+			explore();
 		}
 		else {
 			exploreFloor();
