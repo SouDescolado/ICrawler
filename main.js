@@ -89,7 +89,7 @@ var readSpells = function() {
 	for (var i = 0; i < spellbook.length; i++) {
 		if (spellbook[i].learned || spellbook[i].requiredmgc <= player.mgc.val) {
 			var btncolor = spellType(spellbook[i].type)
-			document.getElementById("spellbook").innerHTML += '<div class="row"><div class="col-xs-5"><button class="btn ' + btncolor + ' btn-block" onClick="cast' + spellbook[i].id + '()">' + spellbook[i].name + '</button></div><div class="col-xs-7"><div class="progress"><div id="' + spellbook[i].id + 'xp" class="progress-bar" role="progressbar" style="width: ' + 100*spellbook[i].xp/spellbook[i].next + '%;"><span id="' + spellbook[i].id + 'prog">' + 100*spellbook[i].xp/spellbook[i].next + '%</span></div></div></div></div><div class="row"><div class="col-xs-5">Level: <span id="' + spellbook[i].id + 'level">0</span></div><div class="col-xs-6"><p class="text-right">Mana Cost: <span id="' + spellbook[i].id + 'cost">10</span></p></div></div>';
+			document.getElementById("spellbook").innerHTML += '<div class="row"><div class="col-xs-5"><button class="btn ' + btncolor + ' btn-block" onClick="cast' + spellbook[i].id + '()">' + spellbook[i].name + '</button></div><div class="col-xs-7"><div class="progress"><div id="' + spellbook[i].id + 'xp" class="progress-bar" role="progressbar" style="width: ' + 100*spellbook[i].xp/spellbook[i].next + '%;"><span id="' + spellbook[i].id + 'prog">' + 100*spellbook[i].xp/spellbook[i].next + '%</span></div></div></div></div><div class="row"><div class="col-xs-5">Level: <span id="' + spellbook[i].id + 'level">0</span></div><div class="col-xs-6"><p class="text-right">Mana Cost: <span id="' + spellbook[i].id + 'cost">0</span></p></div></div>';
 			spellbook[i].learned = true;
 			document.getElementById(spellbook[i].id + "cost").innerHTML = Math.floor(spellbook[i].baseMP + Math.pow(spellbook[i].level, 2));
 			document.getElementById(spellbook[i].id + "level").innerHTML = spellbook[i].level;
@@ -125,7 +125,7 @@ var castcure = function() {
 	}
 	mpcost = Math.floor(spellbook[i].baseMP + Math.pow(spellbook[i].level, 2));
 	if (player.mp.curval >= mpcost) {
-		updateCondition(player.mp, -10);
+		updateCondition(player.mp, -mpcost);
 		
 		curevalue = 25 * Math.pow(1.5, spellbook[i].level) * Math.pow(1.1, player.mgc.val);
 		updateCondition(player.hp, curevalue);
